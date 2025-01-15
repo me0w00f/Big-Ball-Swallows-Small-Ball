@@ -1,3 +1,4 @@
+![](./img/screenshot.png)
 # Big Ball Swallows Small Ball
 
 A simple and fun game based on Pygame where you control a color-changing ball and grow by swallowing smaller balls.
