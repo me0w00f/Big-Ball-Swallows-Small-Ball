@@ -1,0 +1,127 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and editors #
+####################
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python #
+##########
+*.py[cod]
+*.pyo
+__pycache__/
+*.pyd
+
+# Node.js #
+###########
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Java #
+########
+*.class
+*.jar
+*.war
+*.ear
+*.class
+*.iml
+*.ipr
+*.iws
+*.project
+*.classpath
+*.settings/
+target/
+build/
+
+# Ruby #
+########
+*.gem
+*.rbc
+.bundle/
+.config/
+coverage/
+InstalledFiles
+pkg/
+spec/reports/
+test/tmp/
+test/version_tmp/
+tmp/
+
+# Go #
+######
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Rust #
+########
+/target/
+**/*.rs.bk
+
+# Haskell #
+###########
+*.hi
+*.o
+*.dyn_o
+*.dyn_hi
+dist/
+dist-newstyle/
+cabal-dev/
+*.prof
+*.aux
+*.hp
+*.eventlog
+.stack-work/
+.HTF/
+.tix
+.hpc/
+.hsenv/
+.ghc.environment.*
+venv
+.venv
