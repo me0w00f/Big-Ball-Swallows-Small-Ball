@@ -5,7 +5,7 @@ from lib.balls import PlayerBall
 from lib.foods import dots, dot_x2, dot_x3, dot_x4, dot_x8, dot_x16
 
 class BallGameEnv:
-    def __init__(self, width=1920, height=1080, render_mode="human"):
+    def __init__(self, width=1280, height=720, render_mode="human"):
         self.width = width
         self.height = height
         self.render_mode = render_mode
@@ -47,30 +47,25 @@ class BallGameEnv:
         # 计算动作后的距离
         new_distances = [((food.x - self.player.x)**2 + (food.y - self.player.y)**2)**0.5 for food in self.foods]
         
-        # 基础奖励设置
-        reward = 0  # 移除基础惩罚
+        # 优化奖励系统
+        reward = -0.01  # 较小的基础惩罚以促进行动
         
-        # 朝向可食用点移动时给予更多奖励
+        # 改进靠近食物的奖励计算
         for i, (old_d, new_d) in enumerate(zip(old_distances, new_distances)):
-            if self.player.radius > self.foods[i].radius:  # 只考虑可以吃的点
-                if new_d < old_d:  # 距离减少
-                    reward += 0.2 * (old_d - new_d) / self.player.speed  # 增加接近奖励
-                    if new_d < self.player.radius * 2:  # 非常接近目标
-                        reward += 0.5  # 额外接近奖励
-        
-        # 留在安全区域给予奖励
-        safe_zone = self.width * 0.2  # 边缘20%区域被视为危险区
-        if (safe_zone < self.player.x < self.width - safe_zone and 
-            safe_zone < self.player.y < self.height - safe_zone):
-            reward += 0.1  # 安全区域奖励
-        
-        # 边界惩罚
-        edge_margin = 100
+            if self.player.radius > self.foods[i].radius:
+                if new_d < old_d:  # 朝食物移动
+                    distance_ratio = new_d / self.width  # 归一化距离
+                    reward += 0.5 * (1 - distance_ratio)  # 距离越近奖励越大
+                    if new_d < self.player.radius * 3:  # 接近可吃的食物
+                        reward += 1.0
+                        
+        # 优化边界惩罚
+        edge_margin = 50  # 减小边界区域
         if (self.player.x < edge_margin or 
             self.player.x > self.width - edge_margin or 
             self.player.y < edge_margin or 
             self.player.y > self.height - edge_margin):
-            reward -= 2.0  # 增加边界惩罚
+            reward -= 1.0
         
         # 更新食物位置
         for food in self.foods:
@@ -87,14 +82,10 @@ class BallGameEnv:
                 done = True
                 break
             elif collision == 1:  # 吃到食物
-                base_reward = food.points * 3  # 增加基础得分奖励
-                # 额外的进食奖励
-                size_ratio = self.player.radius / food.radius
-                if size_ratio > 2:  # 吃掉明显更小的点
-                    bonus = 1.5
-                else:  # 吃掉接近自己大小的点
-                    bonus = 2.0
-                reward += base_reward * bonus
+                size_ratio = food.radius / self.player.radius
+                base_reward = 10.0  # 提高基础奖励
+                # 吃到相对大的食物给予更多奖励
+                reward += base_reward * (1 + size_ratio * 2)
                 self.player.eat(food.points)
                 self.foods.remove(food)
                 self._spawn_new_food()
@@ -115,7 +106,7 @@ class BallGameEnv:
             reward += 0.05  # 每步生存奖励
         
         # 检查胜利条件
-        if self.player.get_score() >= 2000:
+        if self.player.get_score() >= 5000:
             reward = 2000  # 增加胜利奖励
             done = True
         
@@ -233,8 +224,8 @@ class BallGameEnv:
         self.screen.blit(size_text, (10, 50))
         
         # 如果接近胜利，显示进度条
-        if self.player.get_score() > 8000:
-            progress = (self.player.get_score() / 10000) * 100
+        if self.player.get_score() > 3000:
+            progress = (self.player.get_score() / 5000) * 100
             progress_text = font.render(
                 f"Victory Progress: {progress:.1f}%", 
                 True, 
