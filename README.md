@@ -59,7 +59,6 @@ python manual_play.py
 python train.py --render
 
 # AI training mode, text only
-
 python train.py
 ```
 
