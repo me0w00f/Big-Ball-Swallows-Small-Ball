@@ -21,15 +21,21 @@ class dots:
 
     def move(self, width, height):
         """移动点并在碰到边界时反弹"""
-        self.x += self.dx
-        self.y += self.dy
+        new_x = self.x + self.dx
+        new_y = self.y + self.dy
         
         # 边界检查和反弹
-        if self.x <= self.radius or self.x >= width - self.radius:
+        if new_x <= self.radius or new_x >= width - self.radius:
             self.dx *= -1
-        if self.y <= self.radius or self.y >= height - self.radius:
+            new_x = max(self.radius, min(width - self.radius, new_x))
+        
+        if new_y <= self.radius or new_y >= height - self.radius:
             self.dy *= -1
-
+            new_y = max(self.radius, min(height - self.radius, new_y))
+            
+        self.x = new_x
+        self.y = new_y
+        
         return self.x, self.y
 
 class dot_x2(dots):

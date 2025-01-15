@@ -49,3 +49,9 @@ pip install pygame
 python main.py
 ```
 
+## AI Training
+
+This game includes a reinforcement learning framework for training AI agents to play the game.
+
+### Requirements for AI Training
+

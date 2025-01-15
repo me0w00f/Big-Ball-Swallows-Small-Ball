@@ -1,6 +1,6 @@
 import pygame
 from lib.balls import PlayerBall
-from lib.foods import dots, dot_x2, dot_x3, dot_x4, dot_x8, dot_x16  # 更新导入
+from lib.foods import dots, dot_x2, dot_x3, dot_x4, dot_x8, dot_x16
 import random
 from lib.scoreboard import Scoreboard
 
@@ -10,14 +10,21 @@ pygame.init()
 # 设置窗口
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
-VICTORY_SCORE = 10000  # 添加胜利分数阈值
+VICTORY_SCORE = 5000
 
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Big Ball Swallows Small Ball")
 
 # 颜色定义
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+BACKGROUND_COLOR = (240, 248, 255)  # 淡蓝色背景
+GRID_COLOR = (230, 240, 250)  # 网格线颜色
+GRID_SIZE = 40  # 网格大小
+
+def draw_grid():
+    for x in range(0, WINDOW_WIDTH, GRID_SIZE):
+        pygame.draw.line(screen, GRID_COLOR, (x, 0), (x, WINDOW_HEIGHT))
+    for y in range(0, WINDOW_HEIGHT, GRID_SIZE):
+        pygame.draw.line(screen, GRID_COLOR, (0, y), (WINDOW_WIDTH, y))
 
 def draw_text(screen, text, size, x, y, color=(0, 0, 0)):
     font = pygame.font.Font(None, size)
@@ -27,19 +34,20 @@ def draw_text(screen, text, size, x, y, color=(0, 0, 0)):
     screen.blit(text_surface, text_rect)
 
 def show_victory(screen, score, high_scores):
-    screen.fill(WHITE)
-    draw_text(screen, f"Congratulations! You Won!", 48, WINDOW_WIDTH//4, WINDOW_HEIGHT//3)
+    screen.fill(BACKGROUND_COLOR)
+    draw_text(screen, "👑 Congratulations! You Won! 👑", 48, WINDOW_WIDTH//4, WINDOW_HEIGHT//3)
     draw_text(screen, f"Final Score: {score}", 36, WINDOW_WIDTH//4, WINDOW_HEIGHT//2)
     draw_text(screen, "Press SPACE to play again", 36, WINDOW_WIDTH//4, WINDOW_HEIGHT*3//4)
     pygame.display.flip()
 
 def show_game_over(screen, score, high_scores):
-    screen.fill(WHITE)
-    draw_text(screen, f"Game Over! Score: {score}", 48, WINDOW_WIDTH//4, WINDOW_HEIGHT//3)
-    draw_text(screen, "High Scores:", 36, WINDOW_WIDTH//4, WINDOW_HEIGHT//2)
+    screen.fill(BACKGROUND_COLOR)
+    draw_text(screen, "💀 Game Over! 💀", 48, WINDOW_WIDTH//4, WINDOW_HEIGHT//3)
+    draw_text(screen, f"Score: {score}", 36, WINDOW_WIDTH//4, WINDOW_HEIGHT//2-30)
+    draw_text(screen, "High Scores:", 36, WINDOW_WIDTH//4, WINDOW_HEIGHT//2+30)
     
     for i, high_score in enumerate(high_scores[:5]):
-        draw_text(screen, f"{i+1}. {high_score}", 24, WINDOW_WIDTH//4, WINDOW_HEIGHT//2 + 40 + i*30)
+        draw_text(screen, f"{i+1}. {high_score}", 24, WINDOW_WIDTH//4, WINDOW_HEIGHT//2 + 70 + i*30)
     
     draw_text(screen, "Press SPACE to play again", 36, WINDOW_WIDTH//4, WINDOW_HEIGHT*3//4)
     pygame.display.flip()
@@ -99,7 +107,12 @@ def main():
             
             # 检测碰撞和进食
             for food in foods[:]:
-                if player.check_collision(food.x, food.y, food.radius):
+                collision = player.check_collision(food.x, food.y, food.radius)
+                if collision == -1:  # 碰到更大的点，游戏结束
+                    game_active = False
+                    scoreboard.save_score(player.get_score())
+                    break
+                elif collision == 1:  # 可以吃掉这个点
                     player.eat(food.get_points())
                     foods.remove(food)
                     # 添加新食物
@@ -113,27 +126,40 @@ def main():
                     foods.append(new_food)
 
             # 绘制
-            screen.fill(WHITE)
-            player.draw(screen)
+            screen.fill(BACKGROUND_COLOR)
+            draw_grid()
+            
+            # 绘制食物和它们的阴影
             for food in foods:
-                pygame.draw.circle(
-                    screen,
-                    food.color,
-                    (int(food.x), int(food.y)),
-                    food.radius
-                )
+                # 绘制阴影
+                shadow_surface = pygame.Surface((food.radius * 2, food.radius * 2), pygame.SRCALPHA)
+                pygame.draw.circle(shadow_surface, (*food.color[:3], 100), 
+                                (food.radius, food.radius), food.radius)
+                screen.blit(shadow_surface, 
+                           (int(food.x - food.radius), int(food.y - food.radius + 2)))
+                
+                # 绘制食物
+                pygame.draw.circle(screen, food.color, 
+                                (int(food.x), int(food.y)), food.radius)
             
-            # 显示当前分数
+            # 绘制玩家
+            player.draw(screen)
+            
+            # 显示信息
             draw_text(screen, f"Score: {player.get_score()}", 36, 10, 10)
+            draw_text(screen, f"Size: {int(player.radius)}", 36, 10, 50)
             
-            # 在绘制分数后添加胜利检查
+            # 如果分数接近胜利条件，显示进度
+            if player.get_score() > 3000:
+                progress = (player.get_score() / 5000) * 100
+                draw_text(screen, f"Victory Progress: {progress:.1f}%", 36, 10, 90, (0, 100, 0))
+            
+            # 胜利检查
             if player.get_score() >= VICTORY_SCORE:
                 game_active = False
                 scoreboard.save_score(player.get_score())
                 show_victory(screen, player.get_score(), scoreboard.get_high_scores())
-            
         else:
-            # 修改游戏结束显示逻辑
             if player.get_score() >= VICTORY_SCORE:
                 show_victory(screen, player.get_score(), scoreboard.get_high_scores())
             else:
